@@ -15,7 +15,7 @@ type ChunkServer struct {
 	pb.UnimplementedStorageServer
 }
 
-func (s *ChunkServer) store(_ context.Context, in *pb.Chunk) (*pb.StoreResponse, error) {
+func (s *ChunkServer) Store(ctx context.Context, in *pb.Chunk) (*pb.StoreResponse, error) {
 	err := createChunk(in)
 	if err != nil {
 		errorMessage := fmt.Sprintf("Error: %v", err)
@@ -29,13 +29,21 @@ func createChunk(chunk *pb.Chunk) error {
 	if err != nil {
 		return err
 	}
-	checksumPath := fmt.Sprintf("metedata/%s.checksum", chunk.UniqueName)
+
+	wd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+	MetadataDir := fmt.Sprintf("%s\\metdata", wd)
+	ChunkDir := fmt.Sprintf("%s\\chunks", wd)
+
+	checksumPath := fmt.Sprintf("%s\\%s.checksum", MetadataDir, chunk.UniqueName)
 	err = writeData(checksumPath, checksum)
 	if err != nil {
 		return err
 	}
 
-	dataPath := fmt.Sprintf("chunks/%s", chunk.UniqueName)
+	dataPath := fmt.Sprintf("%s\\%s", ChunkDir, chunk.UniqueName)
 	err = writeData(dataPath, chunk.Data)
 	if err != nil {
 		return err
@@ -78,6 +86,7 @@ func main() {
 		log.Fatalf("Error: %v", err)
 		return
 	}
+	log.Printf("Listening on %s\n", lis.Addr().String())
 
 	grpcServer := grpc.NewServer()
 	pb.RegisterStorageServer(grpcServer, new(ChunkServer))
