@@ -11,11 +11,11 @@ import (
 	"os"
 )
 
-type ChunkServer struct {
+type StorageNode struct {
 	pb.UnimplementedStorageServer
 }
 
-func (s *ChunkServer) Store(ctx context.Context, in *pb.Chunk) (*pb.StoreResponse, error) {
+func (s *StorageNode) Store(ctx context.Context, in *pb.Chunk) (*pb.StoreResponse, error) {
 	err := createChunk(in)
 	if err != nil {
 		errorMessage := fmt.Sprintf("Error: %v", err)
@@ -89,7 +89,7 @@ func main() {
 	log.Printf("Listening on %s\n", lis.Addr().String())
 
 	grpcServer := grpc.NewServer()
-	pb.RegisterStorageServer(grpcServer, new(ChunkServer))
+	pb.RegisterStorageServer(grpcServer, new(StorageNode))
 	err = grpcServer.Serve(lis)
 	if err != nil {
 		log.Fatalf("Error: %v", err)

@@ -132,3 +132,45 @@ func main() {
 	}
 	log.Printf("OK: %d | bad: %d", ok, bad)
 }
+
+type chunkDescriptor struct {
+	uniqueName      string
+	offset          int64
+	size            int
+	storageLocation []string
+}
+
+func getChunkPartition(file *os.File, fileSize int64, chunkSize int64) []chunkDescriptor {
+	nbChunks := fileSize / chunkSize
+	if (fileSize % chunkSize) != 0 {
+		nbChunks++
+	}
+
+	partition := make([]chunkDescriptor, nbChunks)
+
+	for i := int64(0); i < fileSize; i += chunkSize {
+		size := chunkSize
+		if i+chunkSize > fileSize {
+			size = fileSize - i
+		}
+		uniqueName := fmt.Sprintf("chunk_%d", i/chunkSize)
+		partition[i] = chunkDescriptor{
+			uniqueName,
+			i,
+			int(size),
+			[]string{"localhost:8080", "localhost:8081", "localhost:8082"},
+		}
+	}
+
+	return partition
+}
+
+func makeJobs(jobsTo map[string]chan job, partition []chunkDescriptor, file *os.File) {
+	for _, chunkDesc := range partition {
+		worker := chunkDesc.storageLocation[0]
+		if _, ok := jobsTo[worker]; !ok {
+			jobsTo[worker] = make(chan job)
+		}
+		jobsTo[worker] <- job{file, chunkDesc.offset, chunkDesc.size, chunkDesc.uniqueName}
+	}
+}

@@ -1,15 +1,15 @@
 package main
 
-import (
-	"fmt"
-	"os"
-)
+import "fmt"
+
+func test(m map[string]int) {
+	fmt.Println(&m)
+}
 
 func main() {
-	// current path
-	dir, err := os.Getwd()
-	if err != nil {
-		panic(err)
-	}
-	fmt.Printf("Current path: %s\n", dir)
+	m := make(map[string]int)
+	m["a"] = 1
+	m["b"] = 2
+	fmt.Println(&m)
+	test(m)
 }
