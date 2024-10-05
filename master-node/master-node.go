@@ -2,6 +2,7 @@ package main
 
 import (
 	"Awesome-DFS/master-node/comms"
+	"fmt"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -9,9 +10,11 @@ import (
 func main() {
 	opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
 	addressBook := []string{
-		"192.168.100.7:8080",
 		"localhost:8080",
-		"192.168.100.6",
+		"localhost:8081",
+		"localhost:8082",
+		"localhost:8083",
 	}
-	comms.GetAvailableNodes(addressBook, 1024, opts)
+	availableNodes := comms.GetAvailableNodes(addressBook, 1024, opts)
+	fmt.Printf("%v", availableNodes)
 }

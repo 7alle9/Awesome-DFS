@@ -2,6 +2,7 @@ package main
 
 import (
 	pb "Awesome-DFS/storage"
+	"Awesome-DFS/storage-node/comms"
 	"context"
 	"crypto/sha256"
 	"fmt"
@@ -89,7 +90,10 @@ func main() {
 	log.Printf("Listening on %s\n", lis.Addr().String())
 
 	grpcServer := grpc.NewServer()
+
+	comms.RegisterCommsServer(grpcServer)
 	pb.RegisterStorageServer(grpcServer, new(StorageNode))
+
 	err = grpcServer.Serve(lis)
 	if err != nil {
 		log.Fatalf("Error: %v", err)

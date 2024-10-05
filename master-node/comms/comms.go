@@ -60,11 +60,11 @@ func GetAvailableNodes(addressBook []string, chunkSize int, opts []grpc.DialOpti
 		go pingWorker(nodeAddr, chunkSize, opts, nodeStatus)
 	}
 
-	availableNodes := []string{}
+	var availableNodes []string
 	for i := 0; i < len(addressBook); i++ {
-		availability := <-nodeStatus
-		if availability.Status == pb.Status_STATUS_READY {
-			availableNodes = append(availableNodes, availability.Node)
+		nodeAvailability := <-nodeStatus
+		if nodeAvailability.Status == pb.Status_STATUS_READY {
+			availableNodes = append(availableNodes, nodeAvailability.Node)
 		}
 	}
 
