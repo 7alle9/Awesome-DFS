@@ -5,6 +5,7 @@ import (
 	"Awesome-DFS/storage-node/comms"
 	"context"
 	"crypto/sha256"
+	"flag"
 	"fmt"
 	"google.golang.org/grpc"
 	"log"
@@ -81,8 +82,14 @@ func writeData(filepath string, data []byte) error {
 	return nil
 }
 
+// port flag
+var port = flag.String("port", "8080", "Port to listen on")
+
 func main() {
-	lis, err := net.Listen("tcp", ":8080")
+	flag.Parse()
+	addr := fmt.Sprintf(":%s", *port)
+
+	lis, err := net.Listen("tcp", addr)
 	if err != nil {
 		log.Fatalf("Error: %v", err)
 		return

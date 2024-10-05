@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+option go_package = ".";
+
+package partition;
+
+service Partition {
+  rpc split (File) returns (FilePartition) {}
+}
+
+message File {
+  string name = 1;
+  int64 size = 2;
+  int64 chunkSize = 4;
+  int32 nbReplicas = 3;
+}
+
+message FilePartition {
+  repeated Chunk chunks = 1;
+}
+
+message Chunk {
+  string name = 1;
+  int64 offset = 2;
+  int64 size = 3;
+  string sendTo = 4;
+  repeated string replicaChain = 5;
+}

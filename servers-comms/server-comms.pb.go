@@ -118,7 +118,7 @@ type PingResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Status Status `protobuf:"varint,1,opt,name=status,proto3,enum=serverscomms.Status" json:"status,omitempty"`
+	Status Status `protobuf:"varint,1,opt,name=status,proto3,enum=servers-comms.Status" json:"status,omitempty"`
 }
 
 func (x *PingResponse) Reset() {
@@ -198,14 +198,14 @@ func file_server_comms_proto_rawDescGZIP() []byte {
 var file_server_comms_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_server_comms_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_server_comms_proto_goTypes = []any{
-	(Status)(0),          // 0: serverscomms.Status
-	(*PingPayload)(nil),  // 1: serverscomms.PingPayload
-	(*PingResponse)(nil), // 2: serverscomms.PingResponse
+	(Status)(0),          // 0: servers-comms.Status
+	(*PingPayload)(nil),  // 1: servers-comms.PingPayload
+	(*PingResponse)(nil), // 2: servers-comms.PingResponse
 }
 var file_server_comms_proto_depIdxs = []int32{
-	0, // 0: serverscomms.PingResponse.status:type_name -> serverscomms.Status
-	1, // 1: serverscomms.Comms.ping:input_type -> serverscomms.PingPayload
-	2, // 2: serverscomms.Comms.ping:output_type -> serverscomms.PingResponse
+	0, // 0: servers-comms.PingResponse.status:type_name -> servers-comms.Status
+	1, // 1: servers-comms.Comms.ping:input_type -> servers-comms.PingPayload
+	2, // 2: servers-comms.Comms.ping:output_type -> servers-comms.PingResponse
 	2, // [2:3] is the sub-list for method output_type
 	1, // [1:2] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name

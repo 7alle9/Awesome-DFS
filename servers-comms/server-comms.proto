@@ -2,7 +2,7 @@ syntax = "proto3";
 
 option go_package = ".";
 
-package serverscomms;
+package servers_comms;
 
 service Comms {
   rpc ping (PingPayload) returns (PingResponse) {}

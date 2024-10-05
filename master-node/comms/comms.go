@@ -1,7 +1,7 @@
 package comms
 
 import (
-	pb "Awesome-DFS/serverscomms"
+	pb "Awesome-DFS/servers-comms"
 	"context"
 	"google.golang.org/grpc"
 	"log"
@@ -45,11 +45,10 @@ func pingWorker(address string, size int, opts []grpc.DialOption, nodeStatus cha
 	status, responseTime := ping(address, payload, opts)
 
 	if status == pb.Status_STATUS_READY {
-		log.Printf("Node %s : READY. ", address)
+		log.Printf("Node %s is READY. Response time %v\n", address, responseTime)
 	} else {
-		log.Printf("Node %s : NOT READY. ", address)
+		log.Printf("Node %s is NOT READY. Response time %v\n", address, responseTime)
 	}
-	log.Printf("Response time: %v\n", responseTime)
 
 	nodeStatus <- &availability{address, status, responseTime}
 }

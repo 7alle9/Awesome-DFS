@@ -19,7 +19,7 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Comms_Ping_FullMethodName = "/serverscomms.Comms/ping"
+	Comms_Ping_FullMethodName = "/servers-comms.Comms/ping"
 )
 
 // CommsClient is the client API for Comms service.
@@ -108,7 +108,7 @@ func _Comms_Ping_Handler(srv interface{}, ctx context.Context, dec func(interfac
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Comms_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "serverscomms.Comms",
+	ServiceName: "servers-comms.Comms",
 	HandlerType: (*CommsServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
