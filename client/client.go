@@ -1,6 +1,7 @@
 package main
 
 import (
+	fp "Awesome-DFS/client/file_partition"
 	pb "Awesome-DFS/storage"
 	"context"
 	"flag"
@@ -56,7 +57,7 @@ func readChunk(file *os.File, offset int64, size int) ([]byte, error) {
 	return chunk, nil
 }
 
-func main() {
+func tempMain() {
 	flag.Parse()
 	if *filepath == "" {
 		panic("Please provide the path of the file to store")
@@ -172,5 +173,26 @@ func makeJobs(jobsTo map[string]chan job, partition []chunkDescriptor, file *os.
 			jobsTo[worker] = make(chan job)
 		}
 		jobsTo[worker] <- job{file, chunkDesc.offset, chunkDesc.size, chunkDesc.uniqueName}
+	}
+}
+
+func main() {
+	f, err := os.Open("test.txt")
+	if err != nil {
+		log.Fatalf("Error: %v", err)
+	}
+
+	part, err := fp.GetFilePartition(f, 4, 3)
+	if err != nil {
+		log.Fatalf("Error: %v", err)
+	}
+
+	for _, chunk := range part.Chunks {
+		fmt.Println("----------------")
+		fmt.Printf("Chunk: %s\n", chunk.Name)
+		fmt.Printf("Size: %d\n", chunk.Size)
+		fmt.Printf("Offset: %v\n", chunk.Offset)
+		fmt.Printf("Send To: %v\n", chunk.SendTo)
+		fmt.Printf("Replicas: %v\n", chunk.ReplicaChain)
 	}
 }

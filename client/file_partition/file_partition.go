@@ -4,6 +4,7 @@ import (
 	servers "Awesome-DFS/client/server_connection"
 	pb "Awesome-DFS/partition"
 	"context"
+	"log"
 	"os"
 )
 
@@ -16,8 +17,8 @@ func getFileSize(file *os.File) (int64, error) {
 	return fileInfo.Size(), nil
 }
 
-func getFilePartition(file *os.File, chunkSize int64, nbReplicas int) (*pb.FilePartition, error) {
-	partitionServer := servers.GetPartitionServer()
+func GetFilePartition(file *os.File, chunkSize int64, nbReplicas int) (*pb.FilePartition, error) {
+	partitionServer := servers.GetPartitionClient()
 
 	fileName := file.Name()
 	fileSize, err := getFileSize(file)
@@ -31,6 +32,8 @@ func getFilePartition(file *os.File, chunkSize int64, nbReplicas int) (*pb.FileP
 		ChunkSize:  chunkSize,
 		NbReplicas: int32(nbReplicas),
 	}
+
+	log.Printf("Requesting partition for file %s\n", fileName)
 
 	partition, err := partitionServer.Split(context.Background(), splitDescription)
 

@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	address                  = "localhost:7999"
+	address                  = "localhost:8079"
 	conn    *grpc.ClientConn = nil
 	opts                     = []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
 )
@@ -36,7 +36,7 @@ func getMasterConnection() *grpc.ClientConn {
 	return conn
 }
 
-func GetPartitionServer() pb.PartitionClient {
+func GetPartitionClient() pb.PartitionClient {
 	serverConn := getMasterConnection()
 	return pb.NewPartitionClient(serverConn)
 }
