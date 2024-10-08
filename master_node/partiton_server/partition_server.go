@@ -81,8 +81,8 @@ func chunksInit(fileUuid string, fileSize int64, chunkSize int64) []*pb.Chunk {
 func createReplicaChains(chunks []*pb.Chunk, availableNodes []string, nbReplicas int32) {
 	curNode := 0
 
-	for i := int32(0); i < nbReplicas; i++ {
-		for _, chunk := range chunks {
+	for _, chunk := range chunks {
+		for i := int32(0); i < nbReplicas; i++ {
 			chunk.ReplicaChain = append(chunk.ReplicaChain, availableNodes[curNode])
 			curNode = (curNode + 1) % len(availableNodes)
 		}
