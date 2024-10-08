@@ -2,6 +2,7 @@ package partiton_server
 
 import (
 	"Awesome-DFS/master_node/comms_master"
+	ms "Awesome-DFS/master_node/metadata_service"
 	pb "Awesome-DFS/partition"
 	"context"
 	"fmt"
@@ -22,14 +23,14 @@ func (*partitionServer) Split(ctx context.Context, file *pb.File) (*pb.FileParti
 		return nil, fmt.Errorf("failed to get peer from context")
 	}
 
-	log.Printf("Partition request from %s\n", p.Addr.String())
+	log.Printf("Partition request for new file from %s\n", p.Addr.String())
 
-	addressBook := []string{
-		"localhost:8080",
-		"localhost:8081",
-		"localhost:8082",
-		"localhost:8083",
+	if ms.FileExists(file.Name) {
+		log.Printf("Error: File %s already exists", file.Name)
+		return nil, fmt.Errorf("file  %s already exists", file.Name)
 	}
+
+	addressBook := ms.GetAddressBook()
 
 	availableNodesResponse := comms_master.GetAvailableNodes(addressBook, int(file.ChunkSize))
 	if len(availableNodesResponse) == 0 {
@@ -47,6 +48,11 @@ func (*partitionServer) Split(ctx context.Context, file *pb.File) (*pb.FileParti
 	choseChainHeads(chunks, availableNodesResponse)
 
 	filePartition := &pb.FilePartition{Chunks: chunks}
+
+	err := ms.StoreFile(fileUuid, file.Name, file.Size, file.ChunkSize, int(file.NbReplicas), filePartition)
+	if err != nil {
+		return nil, err
+	}
 
 	return filePartition, nil
 }

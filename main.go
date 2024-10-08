@@ -1,16 +1,12 @@
 package main
 
 import (
-	"fmt"
+	x1 "Awesome-DFS/sandbox/extra1"
+	x2 "Awesome-DFS/sandbox/extra2"
 )
 
-func test(m map[string]int) {
-	fmt.Println(&m)
-}
-
 func main() {
-	m := make(map[string]int)
-	m["a"] = 1
-	m["b"] = 2
-	fmt.Println(len(m))
+	x1.ShowA()
+	x2.ShowA()
+	x1.ShowA()
 }
