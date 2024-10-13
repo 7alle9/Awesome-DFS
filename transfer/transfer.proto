@@ -5,7 +5,7 @@ option go_package = ".";
 package transfer;
 
 service FileTransfer {
-  rpc Upload (Chunk) returns (UploadResponse) {}
+  rpc Upload (stream Chunk) returns (UploadResponse) {}
 }
 
 message MetaData {
@@ -17,7 +17,7 @@ message MetaData {
 
 message Data {
   int64 number = 1;
-  bytes data = 2;
+  bytes rawBytes = 2;
 }
 
 message Chunk {

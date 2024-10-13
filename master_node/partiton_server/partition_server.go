@@ -47,7 +47,7 @@ func (*partitionServer) Split(ctx context.Context, file *pb.File) (*pb.FileParti
 
 	choseChainHeads(chunks, availableNodesResponse)
 
-	filePartition := &pb.FilePartition{Chunks: chunks}
+	filePartition := &pb.FilePartition{FileUuid: fileUuid, Chunks: chunks}
 
 	err := ms.StoreFile(fileUuid, file.Name, file.Size, file.ChunkSize, int(file.NbReplicas), filePartition)
 	if err != nil {

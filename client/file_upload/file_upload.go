@@ -1,29 +1,83 @@
 package file_upload
 
 import (
+	pool "Awesome-DFS/client/connection_pool_manager"
 	fp "Awesome-DFS/client/file_partition"
 	part "Awesome-DFS/partition"
+	up "Awesome-DFS/transfer"
+	"context"
+	"log"
 	"os"
+	"sync"
 )
 
-var payloadSize int64 = 2 * 1024 * 1024
+var (
+	payloadSize int64 = 2 * 1024
+	file        *os.File
+	fileUuid    string
+)
 
-func readData(file *os.File, offset int64, data []byte) {
+func readData(offset int64, data []byte) {
 	_, err := file.ReadAt(data, offset)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func worker(jobs <-chan *part.Chunk, file *os.File) {
-	for chunk := range jobs {
+func worker(jobs <-chan *part.Chunk) {
+	for info := range jobs {
 		data := make([]byte, payloadSize)
-		for i := chunk.Offset; i < chunk.Offset+chunk.Size; i += payloadSize {
-			if i+payloadSize > chunk.Offset+chunk.Size {
-				data = make([]byte, chunk.Offset+chunk.Size-i)
-			}
-			readData(file, i, data)
+
+		conn, connId := pool.ConnectTo(info.SendTo)
+		client := up.NewFileTransferClient(conn)
+		stream, err := client.Upload(context.Background())
+		if err != nil {
+			log.Fatalf("%v.RecordRoute(_) = _, %v", client, err)
 		}
+
+		metadata := &up.MetaData{
+			FileUuid:     fileUuid,
+			UniqueName:   info.Name,
+			Size:         info.Size,
+			ReplicaChain: info.ReplicaChain,
+		}
+		chunkMeta := &up.Chunk_Meta{Meta: metadata}
+		chunk := &up.Chunk{Payload: chunkMeta}
+
+		err = stream.Send(chunk)
+		if err != nil {
+			log.Fatalf("Error sending metadata: %v", err)
+		}
+		offset := info.Offset
+		limit := info.Offset + info.Size
+		for i := offset; i < limit; i += payloadSize {
+			if i+payloadSize > limit {
+				data = data[:limit-i]
+			}
+
+			readData(i, data)
+
+			payloadData := &up.Data{RawBytes: data, Number: i / payloadSize}
+			chunkData := &up.Chunk_Data{Data: payloadData}
+			chunk.Payload = chunkData
+
+			err = stream.Send(chunk)
+			if err != nil {
+				log.Fatalf("Error sending data: %v", err)
+			}
+		}
+
+		reply, err := stream.CloseAndRecv()
+		if err != nil {
+			log.Fatalf("%v.CloseAndRecv() got error %v, want %v", stream, err, nil)
+		}
+		if reply.Status == up.Status_STATUS_OK {
+			log.Printf("%s: %s", info.Name, reply.Message)
+		} else {
+			log.Fatalf("Chunk %s failed to upload: %s", info.Name, reply.Message)
+		}
+
+		pool.ReleaseConn(connId)
 	}
 }
 
@@ -37,13 +91,30 @@ func initJobs(partition *part.FilePartition) chan *part.Chunk {
 	return jobs
 }
 
-func UploadFile(file *os.File, chunkSize int64, nbReplicas int) error {
+func UploadFile(fileToUp *os.File, chunkSize int64, nbReplicas int) error {
+	file = fileToUp
+
 	filePartition, err := fp.GetFilePartition(file, chunkSize, nbReplicas)
 	if err != nil {
 		return err
 	}
 
+	fileUuid = filePartition.FileUuid
+
 	jobs := initJobs(filePartition)
+	nbWorkers := min(len(filePartition.Chunks), 500)
+
+	var wg sync.WaitGroup
+	for i := 0; i < nbWorkers; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			worker(jobs)
+		}()
+	}
+	wg.Wait()
+
+	log.Printf("File %s uploaded successfully", file.Name())
 
 	return nil
 }

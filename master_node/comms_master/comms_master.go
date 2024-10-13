@@ -58,7 +58,8 @@ func pingWorker(address string, size int, nodeStatus chan<- *availability) {
 func GetAvailableNodes(addressBook []string, chunkSize int) map[string]time.Duration {
 	nodeStatus := make(chan *availability, len(addressBook))
 	for _, nodeAddr := range addressBook {
-		go pingWorker(nodeAddr, chunkSize, nodeStatus)
+		payloadSize := min(chunkSize, 2*1024*1024)
+		go pingWorker(nodeAddr, payloadSize, nodeStatus)
 	}
 
 	availableNodes := make(map[string]time.Duration)

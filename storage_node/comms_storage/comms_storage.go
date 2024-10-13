@@ -18,7 +18,6 @@ func (s *commsNode) Ping(ctx context.Context, in *pb.PingPayload) (*pb.PingRespo
 	if !ok {
 		return nil, fmt.Errorf("failed to get peer from context")
 	}
-
 	log.Printf("Received ping from %s. Payload Size %s\n", p.Addr.String(), payloadSizeString(len(in.Payload)))
 
 	return &pb.PingResponse{Status: pb.Status_STATUS_READY}, nil

@@ -16,7 +16,8 @@ message File {
 }
 
 message FilePartition {
-  repeated Chunk chunks = 1;
+  string fileUuid = 1;
+  repeated Chunk chunks = 2;
 }
 
 message Chunk {
