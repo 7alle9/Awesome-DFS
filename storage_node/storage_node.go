@@ -1,8 +1,8 @@
 package main
 
 import (
-	pb "Awesome-DFS/storage"
 	comms "Awesome-DFS/storage_node/comms_storage"
+	pb "Awesome-DFS/transfer"
 	"context"
 	"crypto/sha256"
 	"flag"
