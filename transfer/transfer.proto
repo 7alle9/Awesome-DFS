@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+option go_package = ".";
+
+package transfer;
+
+service FileTransfer {
+  rpc Upload (Chunk) returns (UploadResponse) {}
+}
+
+message MetaData {
+  string unique_name = 1;
+  int64 size = 2;
+  repeated string replicaChain = 3;
+}
+
+message Data {
+  int64 number = 1;
+  bytes data = 2;
+}
+
+message Chunk {
+  oneof payload {
+    MetaData meta = 1;
+    Data data = 2;
+  }
+}
+
+message UploadResponse {
+  Status status = 1;
+  string message = 2;
+}
+
+enum Status {
+  STATUS_OK = 0;
+  STATUS_ERROR = 1;
+}
