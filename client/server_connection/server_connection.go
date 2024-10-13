@@ -4,13 +4,17 @@ import (
 	pb "Awesome-DFS/partition"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/keepalive"
 	"log"
 )
 
 var (
 	address                  = "localhost:8079"
 	conn    *grpc.ClientConn = nil
-	opts                     = []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
+	opts                     = []grpc.DialOption{
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithKeepaliveParams(keepalive.ClientParameters{Time: 10, Timeout: 5, PermitWithoutStream: true}),
+	}
 )
 
 func makeConnection() error {

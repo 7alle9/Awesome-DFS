@@ -9,9 +9,10 @@ service FileTransfer {
 }
 
 message MetaData {
-  string unique_name = 1;
-  int64 size = 2;
-  repeated string replicaChain = 3;
+  string fileUuid = 1;
+  string unique_name = 2;
+  int64 size = 3;
+  repeated string replicaChain = 4;
 }
 
 message Data {

@@ -73,3 +73,11 @@ func ReleaseConn(connID int) {
 	}
 	workerPerConn[connID]--
 }
+
+func CloseAll() {
+	clear(connAddr)
+	clear(connPool)
+	clear(connection)
+	clear(workerPerConn)
+	idIncrement = 0
+}
