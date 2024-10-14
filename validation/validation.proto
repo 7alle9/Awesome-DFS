@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+option go_package = ".";
+
+package validation;
+
+service Validation {
+  rpc Validate(ValidationRequest) returns (Empty) {}
+}
+
+message ValidationRequest {
+  string fileUuid = 1;
+}
+
+message Empty {}

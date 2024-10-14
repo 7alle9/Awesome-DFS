@@ -49,7 +49,7 @@ func (*partitionServer) Split(ctx context.Context, file *pb.File) (*pb.FileParti
 
 	filePartition := &pb.FilePartition{FileUuid: fileUuid, Chunks: chunks}
 
-	err := ms.StoreFile(fileUuid, file.Name, file.Size, file.ChunkSize, int(file.NbReplicas), filePartition)
+	err := ms.UploadRequest(fileUuid, file.Name, file.Size, file.ChunkSize, int(file.NbReplicas), filePartition)
 	if err != nil {
 		return nil, err
 	}

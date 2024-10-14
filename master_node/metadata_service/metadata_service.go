@@ -3,6 +3,8 @@ package metadata_service
 import (
 	pb "Awesome-DFS/partition"
 	"fmt"
+	"log"
+	"sync"
 	"time"
 )
 
@@ -16,13 +18,21 @@ type File struct {
 	Partition         *pb.FilePartition
 }
 
+type TempFile struct {
+	File
+	ValidationFactor int
+	ValidationTarget int
+}
+
 type StoreNode struct {
 	Ip   string
 	Port int
 }
 
 var (
+	mu         = &sync.Mutex{}
 	files      = make(map[string]*File)
+	tempFiles  = make(map[string]*TempFile)
 	storeNodes = make([]*StoreNode, 0)
 )
 
@@ -58,7 +68,55 @@ func StoreFile(
 	return nil
 }
 
+func UploadRequest(
+	uuid string,
+	fileName string,
+	size int64,
+	chunkSize int64,
+	replicationFactor int,
+	partition *pb.FilePartition,
+) error {
+	newTempFile := &TempFile{
+		File: File{
+			uuid,
+			fileName,
+			size,
+			chunkSize,
+			replicationFactor,
+			time.Now(),
+			partition,
+		},
+		ValidationFactor: 0,
+		ValidationTarget: replicationFactor * len(partition.Chunks),
+	}
+
+	tempFiles[uuid] = newTempFile
+
+	return nil
+}
+
+func Validate(fileUuid string) {
+	mu.Lock()
+	defer mu.Unlock()
+
+	tempFile, exists := tempFiles[fileUuid]
+	if !exists {
+		return
+	}
+
+	tempFile.ValidationFactor++
+	if tempFile.ValidationFactor == tempFile.ValidationTarget {
+		delete(tempFiles, fileUuid)
+		files[tempFile.FileName] = &tempFile.File
+
+		log.Printf("File %s validated\n", tempFile.FileName)
+	}
+}
+
 func GetFile(fileName string) (*File, error) {
+	mu.Lock()
+	defer mu.Unlock()
+
 	file, exists := files[fileName]
 	if !exists {
 		return nil, fmt.Errorf("file %s does not exist", fileName)

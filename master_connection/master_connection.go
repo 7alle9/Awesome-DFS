@@ -1,15 +1,17 @@
-package server_connection
+package master_connection
 
 import (
-	pb "Awesome-DFS/partition"
-	"fmt"
+	part "Awesome-DFS/partition"
+	val "Awesome-DFS/validation"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/keepalive"
 	"log"
+	"sync"
 )
 
 var (
+	mu      sync.Mutex
 	address                  = "localhost:8079"
 	conn    *grpc.ClientConn = nil
 	opts                     = []grpc.DialOption{
@@ -30,6 +32,9 @@ func makeConnection() error {
 }
 
 func getMasterConnection() *grpc.ClientConn {
+	mu.Lock()
+	defer mu.Unlock()
+
 	if conn == nil {
 		log.Printf("Creating new connection to %s\n", address)
 		err := makeConnection()
@@ -41,8 +46,16 @@ func getMasterConnection() *grpc.ClientConn {
 	return conn
 }
 
-func GetPartitionClient() pb.PartitionClient {
+func GetPartitionClient() part.PartitionClient {
 	serverConn := getMasterConnection()
-	fmt.Println(conn.GetState())
-	return pb.NewPartitionClient(serverConn)
+
+	log.Printf("Creating new partition client\n")
+	return part.NewPartitionClient(serverConn)
+}
+
+func GetValidationClient() val.ValidationClient {
+	serverConn := getMasterConnection()
+
+	log.Printf("Creating new validation client\n")
+	return val.NewValidationClient(serverConn)
 }

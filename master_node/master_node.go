@@ -2,7 +2,7 @@ package main
 
 import (
 	ps "Awesome-DFS/master_node/partiton_server"
-	"Awesome-DFS/storage_node/comms_storage"
+	val "Awesome-DFS/master_node/validation_server"
 	"google.golang.org/grpc"
 	"log"
 	"net"
@@ -16,9 +16,9 @@ func main() {
 	}
 
 	grpcServer := grpc.NewServer()
-	ps.RegisterPartitionServer(grpcServer)
 
-	comms_storage.RegisterCommsServer(grpcServer)
+	ps.RegisterPartitionServer(grpcServer)
+	val.RegisterValidationServer(grpcServer)
 
 	log.Printf("Listening on %s\n", lis.Addr().String())
 

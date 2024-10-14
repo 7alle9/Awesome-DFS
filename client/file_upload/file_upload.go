@@ -30,7 +30,7 @@ func worker(jobs <-chan *part.Chunk) {
 		client := up.NewFileTransferClient(conn)
 		stream, err := client.Upload(context.Background())
 		if err != nil {
-			log.Fatalf("%v.RecordRoute(_) = _, %v", client, err)
+			log.Fatalf("error while opening stream: %v", err)
 		}
 
 		metadata := &up.MetaData{
@@ -44,7 +44,7 @@ func worker(jobs <-chan *part.Chunk) {
 
 		err = stream.Send(chunk)
 		if err != nil {
-			log.Fatalf("Error sending metadata: %v", err)
+			log.Fatalf("error sending metadata: %v", err)
 		}
 
 		data := make([]byte, payloadSize)
@@ -63,7 +63,7 @@ func worker(jobs <-chan *part.Chunk) {
 
 			err = stream.Send(chunk)
 			if err != nil {
-				log.Fatalf("Error sending data: %v", err)
+				log.Fatalf("error sending data: %v", err)
 			}
 		}
 
@@ -74,7 +74,7 @@ func worker(jobs <-chan *part.Chunk) {
 		if reply.Status == up.Status_STATUS_OK {
 			log.Printf("%s: %s", info.Name, reply.Message)
 		} else {
-			log.Fatalf("Chunk %s failed to upload: %s", info.Name, reply.Message)
+			log.Fatalf("chunk %s failed to upload: %s", info.Name, reply.Message)
 		}
 
 		pool.ReleaseConn(connId)

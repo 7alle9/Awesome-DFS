@@ -65,7 +65,8 @@ func Next(chunkFile *os.File, metadata *up.MetaData) {
 
 	stream, conn, err := getStream(forwardTo)
 	if err != nil {
-		log.Fatalf("failed to get stream to forward chunk: %v", err)
+		log.Printf("failed to get stream to forward chunk: %v", err)
+		return
 	}
 	defer conn.Close()
 
@@ -74,7 +75,8 @@ func Next(chunkFile *os.File, metadata *up.MetaData) {
 
 	err = stream.Send(chunk)
 	if err != nil {
-		log.Fatalf("Error sending metadata: %v", err)
+		log.Printf("error sending metadata: %v", err)
+		return
 	}
 
 	data := make([]byte, payloadSize)
@@ -92,18 +94,20 @@ func Next(chunkFile *os.File, metadata *up.MetaData) {
 
 		err = stream.Send(chunk)
 		if err != nil {
-			log.Fatalf("Error sending data: %v", err)
+			log.Printf("error sending data: %v", err)
+			return
 		}
 	}
 
 	reply, err := stream.CloseAndRecv()
 	if err != nil {
-		log.Fatalf("failed to close and receive: %v", err)
+		log.Printf("failed to close and receive: %v", err)
+		return
 	}
 
 	if reply.Status == up.Status_STATUS_OK {
 		log.Printf("Chunk %s forwarded successfully", metadata.UniqueName)
 	} else {
-		log.Fatalf("failed to forward chunk %s: %s", metadata.UniqueName, reply.Message)
+		log.Printf("failed to forward chunk %s: %s", metadata.UniqueName, reply.Message)
 	}
 }

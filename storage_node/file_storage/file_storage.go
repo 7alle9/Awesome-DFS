@@ -3,6 +3,7 @@ package file_storage
 import (
 	cf "Awesome-DFS/storage_node/chunk_forwarding"
 	ms "Awesome-DFS/storage_node/metadata_service"
+	val "Awesome-DFS/storage_node/storage_validation"
 	up "Awesome-DFS/transfer"
 	"crypto/sha256"
 	"fmt"
@@ -79,6 +80,8 @@ func (s *uploadServer) Upload(stream up.FileTransfer_UploadServer) error {
 			ms.NewChunk(metadata.FileUuid, metadata.UniqueName, checksum)
 
 			log.Printf("stored %s successfully in %v\n", metadata.UniqueName, elapsed)
+
+			go val.ValidateChunk(metadata.FileUuid)
 
 			go cf.Next(chunkFile, metadata)
 
