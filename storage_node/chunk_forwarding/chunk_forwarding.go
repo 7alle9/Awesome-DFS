@@ -1,7 +1,7 @@
 package chunk_forwarding
 
 import (
-	up "Awesome-DFS/transfer"
+	"Awesome-DFS/protobuf/transfer"
 	"context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -28,7 +28,7 @@ func nextNode(chain *[]string) string {
 }
 
 func getStream(addr string) (
-	grpc.ClientStreamingClient[up.Chunk, up.UploadResponse],
+	grpc.ClientStreamingClient[__.Chunk, __.UploadResponse],
 	*grpc.ClientConn,
 	error,
 ) {
@@ -37,7 +37,7 @@ func getStream(addr string) (
 		return nil, nil, err
 	}
 
-	client := up.NewFileTransferClient(conn)
+	client := __.NewFileTransferClient(conn)
 	stream, err := client.Upload(context.Background())
 	if err != nil {
 		return nil, nil, err
@@ -53,7 +53,7 @@ func readData(file *os.File, offset int64, data []byte) {
 	}
 }
 
-func Next(chunkFile *os.File, metadata *up.MetaData) {
+func Next(chunkFile *os.File, metadata *__.MetaData) {
 	defer chunkFile.Close()
 
 	forwardTo := nextNode(&metadata.ReplicaChain)
@@ -70,8 +70,8 @@ func Next(chunkFile *os.File, metadata *up.MetaData) {
 	}
 	defer conn.Close()
 
-	chunkMeta := &up.Chunk_Meta{Meta: metadata}
-	chunk := &up.Chunk{Payload: chunkMeta}
+	chunkMeta := &__.Chunk_Meta{Meta: metadata}
+	chunk := &__.Chunk{Payload: chunkMeta}
 
 	err = stream.Send(chunk)
 	if err != nil {
@@ -88,8 +88,8 @@ func Next(chunkFile *os.File, metadata *up.MetaData) {
 
 		readData(chunkFile, i, data)
 
-		payloadData := &up.Data{RawBytes: data, Number: i / payloadSize}
-		chunkData := &up.Chunk_Data{Data: payloadData}
+		payloadData := &__.Data{RawBytes: data, Number: i / payloadSize}
+		chunkData := &__.Chunk_Data{Data: payloadData}
 		chunk.Payload = chunkData
 
 		err = stream.Send(chunk)
@@ -105,7 +105,7 @@ func Next(chunkFile *os.File, metadata *up.MetaData) {
 		return
 	}
 
-	if reply.Status == up.Status_STATUS_OK {
+	if reply.Status == __.Status_STATUS_OK {
 		log.Printf("Chunk %s forwarded successfully", metadata.UniqueName)
 	} else {
 		log.Printf("failed to forward chunk %s: %s", metadata.UniqueName, reply.Message)

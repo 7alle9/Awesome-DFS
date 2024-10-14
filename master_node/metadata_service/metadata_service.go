@@ -1,7 +1,7 @@
 package metadata_service
 
 import (
-	pb "Awesome-DFS/partition"
+	pb "Awesome-DFS/protobuf/partition"
 	"fmt"
 	"log"
 	"sync"

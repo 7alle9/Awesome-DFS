@@ -2,7 +2,7 @@ package storage_validation
 
 import (
 	master "Awesome-DFS/master_connection"
-	val "Awesome-DFS/validation"
+	val "Awesome-DFS/protobuf/validation"
 	"context"
 )
 

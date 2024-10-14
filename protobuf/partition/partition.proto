@@ -6,6 +6,7 @@ package partition;
 
 service Partition {
   rpc split (File) returns (FilePartition) {}
+  rpc reconstruct (FileDesc) returns (FilePartition) {}
 }
 
 message File {
@@ -26,4 +27,8 @@ message Chunk {
   int64 size = 3;
   string sendTo = 4;
   repeated string replicaChain = 5;
+}
+
+message FileDesc {
+  string filename = 1;
 }

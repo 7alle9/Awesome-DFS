@@ -1,8 +1,8 @@
 package master_connection
 
 import (
-	part "Awesome-DFS/partition"
-	val "Awesome-DFS/validation"
+	part "Awesome-DFS/protobuf/partition"
+	val "Awesome-DFS/protobuf/validation"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/keepalive"

@@ -1,10 +1,10 @@
 package file_storage
 
 import (
+	"Awesome-DFS/protobuf/transfer"
 	cf "Awesome-DFS/storage_node/chunk_forwarding"
 	ms "Awesome-DFS/storage_node/metadata_service"
 	val "Awesome-DFS/storage_node/storage_validation"
-	up "Awesome-DFS/transfer"
 	"crypto/sha256"
 	"fmt"
 	"google.golang.org/grpc"
@@ -19,10 +19,10 @@ import (
 var mu sync.Mutex
 
 type uploadServer struct {
-	up.UnimplementedFileTransferServer
+	__.UnimplementedFileTransferServer
 }
 
-func initChunk(meta *up.MetaData) (*os.File, error) {
+func initChunk(meta *__.MetaData) (*os.File, error) {
 	dirPath, err := initDir(meta.FileUuid)
 	if err != nil {
 		return nil, err
@@ -50,7 +50,7 @@ func initDir(name string) (string, error) {
 	return fullPath, nil
 }
 
-func (s *uploadServer) Upload(stream up.FileTransfer_UploadServer) error {
+func (s *uploadServer) Upload(stream __.FileTransfer_UploadServer) error {
 	p, ok := peer.FromContext(stream.Context())
 	if !ok {
 		return fmt.Errorf("failed to get peer from context")
@@ -60,7 +60,7 @@ func (s *uploadServer) Upload(stream up.FileTransfer_UploadServer) error {
 	hasher := sha256.New()
 	start := time.Now()
 	var chunkFile *os.File
-	var metadata *up.MetaData
+	var metadata *__.MetaData
 	for {
 		chunk, err := stream.Recv()
 
@@ -68,8 +68,8 @@ func (s *uploadServer) Upload(stream up.FileTransfer_UploadServer) error {
 			err = chunkFile.Sync()
 			if err != nil {
 				log.Printf("failed to sync chunk file: %v", err)
-				return stream.SendAndClose(&up.UploadResponse{
-					Status:  up.Status_STATUS_ERROR,
+				return stream.SendAndClose(&__.UploadResponse{
+					Status:  __.Status_STATUS_ERROR,
 					Message: fmt.Sprintf("failed to sync chunk file: %v", err),
 				})
 			}
@@ -85,8 +85,8 @@ func (s *uploadServer) Upload(stream up.FileTransfer_UploadServer) error {
 
 			go cf.Next(chunkFile, metadata)
 
-			return stream.SendAndClose(&up.UploadResponse{
-				Status:  up.Status_STATUS_OK,
+			return stream.SendAndClose(&__.UploadResponse{
+				Status:  __.Status_STATUS_OK,
 				Message: fmt.Sprintf("Upload completed in %v", elapsed),
 			})
 		}
@@ -97,14 +97,14 @@ func (s *uploadServer) Upload(stream up.FileTransfer_UploadServer) error {
 		}
 
 		switch payload := chunk.Payload.(type) {
-		case *up.Chunk_Meta:
+		case *__.Chunk_Meta:
 			metadata = payload.Meta
 			chunkFile, err = initChunk(payload.Meta)
 			if err != nil {
 				log.Printf("failed to initialize chunk: %v", err)
 				return fmt.Errorf("failed to initialize chunk: %v", err)
 			}
-		case *up.Chunk_Data:
+		case *__.Chunk_Data:
 			_, err = chunkFile.Write(payload.Data.RawBytes)
 			if err != nil {
 				log.Printf("failed to write chunk: %v", err)
@@ -121,5 +121,5 @@ func (s *uploadServer) Upload(stream up.FileTransfer_UploadServer) error {
 }
 
 func RegisterFileTransferServer(server *grpc.Server) {
-	up.RegisterFileTransferServer(server, new(uploadServer))
+	__.RegisterFileTransferServer(server, new(uploadServer))
 }

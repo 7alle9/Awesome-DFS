@@ -2,7 +2,7 @@ package file_partition
 
 import (
 	master "Awesome-DFS/master_connection"
-	pb "Awesome-DFS/partition"
+	pb "Awesome-DFS/protobuf/partition"
 	"context"
 	"log"
 	"os"
@@ -37,6 +37,23 @@ func GetFilePartition(file *os.File, chunkSize int64, nbReplicas int) (*pb.FileP
 
 	partition, err := client.Split(context.Background(), splitDescription)
 	if err != nil {
+		log.Printf("Error: %v\n", err)
+		return nil, err
+	}
+
+	return partition, nil
+}
+
+func ReconstructFile(fileName string) (*pb.FilePartition, error) {
+	client := master.GetPartitionClient()
+
+	log.Printf("Requesting reconstruction for file %s\n", fileName)
+
+	fileDesc := &pb.FileDesc{Filename: fileName}
+
+	partition, err := client.Reconstruct(context.Background(), fileDesc)
+	if err != nil {
+		log.Printf("Error: %v\n", err)
 		return nil, err
 	}
 

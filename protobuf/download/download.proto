@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+option go_package = ".";
+
+package download;
+
+service Download {
+  rpc download (ChunkDesc) returns (stream Payload) {}
+}
+
+message ChunkDesc {
+  string fileName = 1;
+  string chunkName = 2;
+}
+
+message Payload {
+  bytes data = 1;
+}

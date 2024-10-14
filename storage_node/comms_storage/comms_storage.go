@@ -1,7 +1,7 @@
 package comms_storage
 
 import (
-	pb "Awesome-DFS/servers_comms"
+	"Awesome-DFS/protobuf/servers_comms"
 	"context"
 	"fmt"
 	"google.golang.org/grpc"
@@ -10,21 +10,21 @@ import (
 )
 
 type commsNode struct {
-	pb.UnimplementedCommsServer
+	__.UnimplementedCommsServer
 }
 
-func (s *commsNode) Ping(ctx context.Context, in *pb.PingPayload) (*pb.PingResponse, error) {
+func (s *commsNode) Ping(ctx context.Context, in *__.PingPayload) (*__.PingResponse, error) {
 	p, ok := peer.FromContext(ctx)
 	if !ok {
 		return nil, fmt.Errorf("failed to get peer from context")
 	}
 	log.Printf("Received ping from %s. Payload Size %s\n", p.Addr.String(), payloadSizeString(len(in.Payload)))
 
-	return &pb.PingResponse{Status: pb.Status_STATUS_READY}, nil
+	return &__.PingResponse{Status: __.Status_STATUS_READY}, nil
 }
 
 func RegisterCommsServer(server *grpc.Server) {
-	pb.RegisterCommsServer(server, new(commsNode))
+	__.RegisterCommsServer(server, new(commsNode))
 }
 
 func payloadSizeString(size int) string {

@@ -19,7 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Partition_Split_FullMethodName = "/partition.Partition/split"
+	Partition_Split_FullMethodName       = "/partition.Partition/split"
+	Partition_Reconstruct_FullMethodName = "/partition.Partition/reconstruct"
 )
 
 // PartitionClient is the client API for Partition service.
@@ -27,6 +28,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type PartitionClient interface {
 	Split(ctx context.Context, in *File, opts ...grpc.CallOption) (*FilePartition, error)
+	Reconstruct(ctx context.Context, in *FileDesc, opts ...grpc.CallOption) (*FilePartition, error)
 }
 
 type partitionClient struct {
@@ -47,11 +49,22 @@ func (c *partitionClient) Split(ctx context.Context, in *File, opts ...grpc.Call
 	return out, nil
 }
 
+func (c *partitionClient) Reconstruct(ctx context.Context, in *FileDesc, opts ...grpc.CallOption) (*FilePartition, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(FilePartition)
+	err := c.cc.Invoke(ctx, Partition_Reconstruct_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PartitionServer is the server API for Partition service.
 // All implementations must embed UnimplementedPartitionServer
 // for forward compatibility.
 type PartitionServer interface {
 	Split(context.Context, *File) (*FilePartition, error)
+	Reconstruct(context.Context, *FileDesc) (*FilePartition, error)
 	mustEmbedUnimplementedPartitionServer()
 }
 
@@ -64,6 +77,9 @@ type UnimplementedPartitionServer struct{}
 
 func (UnimplementedPartitionServer) Split(context.Context, *File) (*FilePartition, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Split not implemented")
+}
+func (UnimplementedPartitionServer) Reconstruct(context.Context, *FileDesc) (*FilePartition, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Reconstruct not implemented")
 }
 func (UnimplementedPartitionServer) mustEmbedUnimplementedPartitionServer() {}
 func (UnimplementedPartitionServer) testEmbeddedByValue()                   {}
@@ -104,6 +120,24 @@ func _Partition_Split_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Partition_Reconstruct_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FileDesc)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartitionServer).Reconstruct(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Partition_Reconstruct_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartitionServer).Reconstruct(ctx, req.(*FileDesc))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Partition_ServiceDesc is the grpc.ServiceDesc for Partition service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -114,6 +148,10 @@ var Partition_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "split",
 			Handler:    _Partition_Split_Handler,
+		},
+		{
+			MethodName: "reconstruct",
+			Handler:    _Partition_Reconstruct_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
