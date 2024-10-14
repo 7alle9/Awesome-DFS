@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	payloadSize int64 = 2 * 1024
+	payloadSize int64 = 2 * 1024 * 1024
 	file        *os.File
 	fileUuid    string
 )
@@ -26,8 +26,6 @@ func readData(offset int64, data []byte) {
 
 func worker(jobs <-chan *part.Chunk) {
 	for info := range jobs {
-		data := make([]byte, payloadSize)
-
 		conn, connId := pool.ConnectTo(info.SendTo)
 		client := up.NewFileTransferClient(conn)
 		stream, err := client.Upload(context.Background())
@@ -48,6 +46,8 @@ func worker(jobs <-chan *part.Chunk) {
 		if err != nil {
 			log.Fatalf("Error sending metadata: %v", err)
 		}
+
+		data := make([]byte, payloadSize)
 		offset := info.Offset
 		limit := info.Offset + info.Size
 		for i := offset; i < limit; i += payloadSize {
@@ -69,7 +69,7 @@ func worker(jobs <-chan *part.Chunk) {
 
 		reply, err := stream.CloseAndRecv()
 		if err != nil {
-			log.Fatalf("%v.CloseAndRecv() got error %v, want %v", stream, err, nil)
+			log.Fatalf("error while closing stream: %v", err)
 		}
 		if reply.Status == up.Status_STATUS_OK {
 			log.Printf("%s: %s", info.Name, reply.Message)

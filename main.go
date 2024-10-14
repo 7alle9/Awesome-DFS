@@ -1,19 +1,19 @@
 package main
 
-import "os"
+import "fmt"
+
+func nextNode(chain *[]string) string {
+	if len(*chain) == 0 {
+		return ""
+	}
+	res := (*chain)[0]
+	*chain = (*chain)[1:]
+	return res
+}
 
 func main() {
-	testData := make([]byte, 2*1024*1024)
-	f, err := os.Create("bigF.txt")
-	if err != nil {
-		panic(err)
-	}
-	for i := 0; i < 2*1024*1024; i++ {
-		testData[i] = 'a'
-	}
-
-	_, err = f.Write(testData)
-	if err != nil {
-		panic(err)
-	}
+	chain := []string{"a", "b", "c"}
+	next := nextNode(&chain)
+	fmt.Println(next)
+	fmt.Printf("chain: %v\n", chain)
 }

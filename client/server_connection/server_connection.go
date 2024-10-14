@@ -2,6 +2,7 @@ package server_connection
 
 import (
 	pb "Awesome-DFS/partition"
+	"fmt"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/keepalive"
@@ -42,5 +43,6 @@ func getMasterConnection() *grpc.ClientConn {
 
 func GetPartitionClient() pb.PartitionClient {
 	serverConn := getMasterConnection()
+	fmt.Println(conn.GetState())
 	return pb.NewPartitionClient(serverConn)
 }

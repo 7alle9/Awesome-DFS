@@ -36,6 +36,9 @@ func GetFilePartition(file *os.File, chunkSize int64, nbReplicas int) (*pb.FileP
 	log.Printf("Requesting partition for file %s\n", fileName)
 
 	partition, err := partitionServer.Split(context.Background(), splitDescription)
+	if err != nil {
+		return nil, err
+	}
 
 	return partition, nil
 }

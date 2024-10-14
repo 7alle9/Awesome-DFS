@@ -23,7 +23,7 @@ func (*partitionServer) Split(ctx context.Context, file *pb.File) (*pb.FileParti
 		return nil, fmt.Errorf("failed to get peer from context")
 	}
 
-	log.Printf("Partition request for new file from %s\n", p.Addr.String())
+	log.Printf("Upload request for new file from %s\n", p.Addr.String())
 
 	if ms.FileExists(file.Name) {
 		log.Printf("Error: File %s already exists", file.Name)
@@ -34,7 +34,7 @@ func (*partitionServer) Split(ctx context.Context, file *pb.File) (*pb.FileParti
 
 	availableNodesResponse := comms_master.GetAvailableNodes(addressBook, int(file.ChunkSize))
 	if len(availableNodesResponse) == 0 {
-		return nil, fmt.Errorf("no available nodes")
+		return nil, fmt.Errorf("no available storage nodes")
 	}
 
 	availableNodes := extractAvailableNodes(availableNodesResponse)

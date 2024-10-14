@@ -27,16 +27,12 @@ func newConn(address string) (*grpc.ClientConn, int) {
 		panic(err)
 	}
 
-	mu.Lock()
-
 	connId := idIncrement
 	idIncrement++
 	workerPerConn[connId] = 1
 	connAddr[connId] = address
 	connection[connId] = conn
 	connPool[address] = append(connPool[address], connId)
-
-	mu.Unlock()
 
 	log.Printf("New connection to %s created with id %d", address, connId)
 
@@ -49,16 +45,11 @@ func isSaturated(connId int) bool {
 
 func ConnectTo(address string) (*grpc.ClientConn, int) {
 	mu.Lock()
+	defer mu.Unlock()
 
 	if len(connPool[address]) == 0 {
-		mu.Unlock()
-
 		return newConn(address)
-	} else {
-		mu.Unlock()
 	}
-
-	mu.Lock()
 
 	connID := connPool[address][0]
 	workerPerConn[connID]++
@@ -66,8 +57,6 @@ func ConnectTo(address string) (*grpc.ClientConn, int) {
 		connPool[address] = connPool[address][1:]
 		log.Printf("Connection to %s with id %d is saturated", address, connID)
 	}
-
-	mu.Unlock()
 
 	return connection[connID], connID
 }
