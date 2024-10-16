@@ -5,7 +5,6 @@ import (
 	val "Awesome-DFS/protobuf/validation"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"google.golang.org/grpc/keepalive"
 	"log"
 	"sync"
 )
@@ -16,7 +15,7 @@ var (
 	conn    *grpc.ClientConn = nil
 	opts                     = []grpc.DialOption{
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithKeepaliveParams(keepalive.ClientParameters{Time: 10, Timeout: 5, PermitWithoutStream: true}),
+		//grpc.WithKeepaliveParams(keepalive.ClientParameters{Time: 10, Timeout: 20, PermitWithoutStream: true}),
 	}
 )
 

@@ -3,7 +3,6 @@ package connection_pool_manager
 import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"google.golang.org/grpc/keepalive"
 	"log"
 	"sync"
 )
@@ -17,7 +16,7 @@ var (
 	connPool      = make(map[string][]int)
 	opts          = []grpc.DialOption{
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithKeepaliveParams(keepalive.ClientParameters{Time: 10, Timeout: 5, PermitWithoutStream: true}),
+		//grpc.WithKeepaliveParams(keepalive.ClientParameters{Time: 10, Timeout: 15, PermitWithoutStream: true}),
 	}
 )
 

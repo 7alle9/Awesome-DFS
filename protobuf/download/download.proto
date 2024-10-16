@@ -5,14 +5,27 @@ option go_package = ".";
 package download;
 
 service Download {
-  rpc download (ChunkDesc) returns (stream Payload) {}
+  rpc download (ChunkDesc) returns (stream Chunk) {}
 }
 
 message ChunkDesc {
   string fileName = 1;
   string chunkName = 2;
+  int64 size = 3;
 }
 
-message Payload {
-  bytes data = 1;
+message Chunk {
+  oneof payload {
+    Data data = 1;
+    IntegrityCheck integrityCheck = 2;
+  }
+}
+
+message IntegrityCheck {
+  string checksum = 1;
+}
+
+message Data {
+  int64 number = 1;
+  bytes rawBytes = 2;
 }

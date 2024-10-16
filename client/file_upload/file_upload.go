@@ -4,7 +4,7 @@ import (
 	pool "Awesome-DFS/client/connection_pool_manager"
 	fp "Awesome-DFS/client/file_partition"
 	part "Awesome-DFS/protobuf/partition"
-	"Awesome-DFS/protobuf/transfer"
+	up "Awesome-DFS/protobuf/transfer"
 	"context"
 	"log"
 	"os"
@@ -27,20 +27,20 @@ func readData(offset int64, data []byte) {
 func worker(jobs <-chan *part.Chunk) {
 	for info := range jobs {
 		conn, connId := pool.ConnectTo(info.SendTo)
-		client := __.NewFileTransferClient(conn)
+		client := up.NewFileTransferClient(conn)
 		stream, err := client.Upload(context.Background())
 		if err != nil {
 			log.Fatalf("error while opening stream: %v", err)
 		}
 
-		metadata := &__.MetaData{
+		metadata := &up.MetaData{
 			FileUuid:     fileUuid,
 			UniqueName:   info.Name,
 			Size:         info.Size,
 			ReplicaChain: info.ReplicaChain,
 		}
-		chunkMeta := &__.Chunk_Meta{Meta: metadata}
-		chunk := &__.Chunk{Payload: chunkMeta}
+		chunkMeta := &up.Chunk_Meta{Meta: metadata}
+		chunk := &up.Chunk{Payload: chunkMeta}
 
 		err = stream.Send(chunk)
 		if err != nil {
@@ -57,8 +57,8 @@ func worker(jobs <-chan *part.Chunk) {
 
 			readData(i, data)
 
-			payloadData := &__.Data{RawBytes: data, Number: i / payloadSize}
-			chunkData := &__.Chunk_Data{Data: payloadData}
+			payloadData := &up.Data{RawBytes: data, Number: i / payloadSize}
+			chunkData := &up.Chunk_Data{Data: payloadData}
 			chunk.Payload = chunkData
 
 			err = stream.Send(chunk)
@@ -71,7 +71,7 @@ func worker(jobs <-chan *part.Chunk) {
 		if err != nil {
 			log.Fatalf("error while closing stream: %v", err)
 		}
-		if reply.Status == __.Status_STATUS_OK {
+		if reply.Status == up.Status_STATUS_OK {
 			log.Printf("%s: %s", info.Name, reply.Message)
 		} else {
 			log.Fatalf("chunk %s failed to upload: %s", info.Name, reply.Message)
@@ -93,7 +93,9 @@ func initJobs(partition *part.FilePartition) chan *part.Chunk {
 
 func UploadFile(fileToUp *os.File, chunkSize int64, nbReplicas int) error {
 	file = fileToUp
+	log.Printf("Request to upload file %s", file.Name())
 
+	log.Printf("Getting file partition")
 	filePartition, err := fp.GetFilePartition(file, chunkSize, nbReplicas)
 	if err != nil {
 		return err

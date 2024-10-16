@@ -2,6 +2,7 @@ package main
 
 import (
 	comms "Awesome-DFS/storage_node/comms_storage"
+	down "Awesome-DFS/storage_node/file_retrieval"
 	store "Awesome-DFS/storage_node/file_storage"
 	"flag"
 	"fmt"
@@ -26,6 +27,7 @@ func main() {
 
 	comms.RegisterCommsServer(grpcServer)
 	store.RegisterFileTransferServer(grpcServer)
+	down.RegisterDownloadServer(grpcServer)
 
 	log.Printf("Listening on %s\n", lis.Addr().String())
 

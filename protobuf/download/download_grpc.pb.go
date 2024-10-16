@@ -26,7 +26,7 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type DownloadClient interface {
-	Download(ctx context.Context, in *ChunkDesc, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Payload], error)
+	Download(ctx context.Context, in *ChunkDesc, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Chunk], error)
 }
 
 type downloadClient struct {
@@ -37,13 +37,13 @@ func NewDownloadClient(cc grpc.ClientConnInterface) DownloadClient {
 	return &downloadClient{cc}
 }
 
-func (c *downloadClient) Download(ctx context.Context, in *ChunkDesc, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Payload], error) {
+func (c *downloadClient) Download(ctx context.Context, in *ChunkDesc, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Chunk], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	stream, err := c.cc.NewStream(ctx, &Download_ServiceDesc.Streams[0], Download_Download_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &grpc.GenericClientStream[ChunkDesc, Payload]{ClientStream: stream}
+	x := &grpc.GenericClientStream[ChunkDesc, Chunk]{ClientStream: stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -54,13 +54,13 @@ func (c *downloadClient) Download(ctx context.Context, in *ChunkDesc, opts ...gr
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type Download_DownloadClient = grpc.ServerStreamingClient[Payload]
+type Download_DownloadClient = grpc.ServerStreamingClient[Chunk]
 
 // DownloadServer is the server API for Download service.
 // All implementations must embed UnimplementedDownloadServer
 // for forward compatibility.
 type DownloadServer interface {
-	Download(*ChunkDesc, grpc.ServerStreamingServer[Payload]) error
+	Download(*ChunkDesc, grpc.ServerStreamingServer[Chunk]) error
 	mustEmbedUnimplementedDownloadServer()
 }
 
@@ -71,7 +71,7 @@ type DownloadServer interface {
 // pointer dereference when methods are called.
 type UnimplementedDownloadServer struct{}
 
-func (UnimplementedDownloadServer) Download(*ChunkDesc, grpc.ServerStreamingServer[Payload]) error {
+func (UnimplementedDownloadServer) Download(*ChunkDesc, grpc.ServerStreamingServer[Chunk]) error {
 	return status.Errorf(codes.Unimplemented, "method Download not implemented")
 }
 func (UnimplementedDownloadServer) mustEmbedUnimplementedDownloadServer() {}
@@ -100,11 +100,11 @@ func _Download_Download_Handler(srv interface{}, stream grpc.ServerStream) error
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(DownloadServer).Download(m, &grpc.GenericServerStream[ChunkDesc, Payload]{ServerStream: stream})
+	return srv.(DownloadServer).Download(m, &grpc.GenericServerStream[ChunkDesc, Chunk]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type Download_DownloadServer = grpc.ServerStreamingServer[Payload]
+type Download_DownloadServer = grpc.ServerStreamingServer[Chunk]
 
 // Download_ServiceDesc is the grpc.ServiceDesc for Download service.
 // It's only intended for direct use with grpc.RegisterService,
