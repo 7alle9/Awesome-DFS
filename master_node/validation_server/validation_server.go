@@ -11,7 +11,7 @@ type ValidationServer struct {
 	__.UnimplementedValidationServer
 }
 
-func (s *ValidationServer) Validate(_ context.Context, req *__.ValidationRequest) (*__.Empty, error) {
+func (*ValidationServer) Validate(_ context.Context, req *__.ValidationRequest) (*__.Empty, error) {
 	ms.Validate(req.FileUuid)
 	return &__.Empty{}, nil
 }
