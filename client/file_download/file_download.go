@@ -3,6 +3,7 @@ package file_download
 import (
 	pool "Awesome-DFS/client/connection_pool_manager"
 	fp "Awesome-DFS/client/file_partition"
+	hs "Awesome-DFS/client/hashing_service"
 	down "Awesome-DFS/protobuf/download"
 	part "Awesome-DFS/protobuf/partition"
 	"context"
@@ -17,7 +18,14 @@ import (
 var (
 	file     *os.File
 	fileUuid string
+	dehasher *hs.HashingService
 )
+
+func handleJobError(errMessage string, connId int) {
+	log.Println(errMessage)
+	log.Println("trying next storage node")
+	pool.ReleaseConn(connId)
+}
 
 func writeData(offset int64, data []byte) error {
 	_, err := file.WriteAt(data, offset)
@@ -46,16 +54,13 @@ func worker(jobs <-chan *part.Chunk) {
 			stream, err := client.Download(context.Background(), chunkDesc)
 
 			if err != nil {
-				log.Printf("could not reach storage node %s: %v", storageNode, err)
-				log.Printf("trying next storage node")
-				pool.ReleaseConn(connId)
+				msg := fmt.Sprintf("could not reach storage node %s: %v", storageNode, err)
+				handleJobError(msg, connId)
 				continue
 			}
 
 			chunkIsGood = true
-
 			offset := info.Offset
-
 			hasher := sha256.New()
 
 			for {
@@ -66,20 +71,26 @@ func worker(jobs <-chan *part.Chunk) {
 				}
 
 				if err != nil {
-					log.Printf("error while downloading chunk: %v", err)
-					log.Printf("trying next storage node")
-					pool.ReleaseConn(connId)
+					msg := fmt.Sprintf("error while downloading chunk: %v", err)
+					handleJobError(msg, connId)
 					chunkIsGood = false
 					break
 				}
 
 				switch payload := chunk.Payload.(type) {
 				case *down.Chunk_Data:
-					err = writeData(offset, payload.Data.RawBytes)
+					data, err := dehasher.DecryptByteArray(payload.Data.RawBytes)
 					if err != nil {
-						log.Printf("error while writing data: %v", err)
-						log.Printf("trying next storage node")
-						pool.ReleaseConn(connId)
+						msg := fmt.Sprintf("error while decrypting data: %v", err)
+						handleJobError(msg, connId)
+						chunkIsGood = false
+						break
+					}
+
+					err = writeData(offset, data)
+					if err != nil {
+						msg := fmt.Sprintf("error while writing data: %v", err)
+						handleJobError(msg, connId)
 						chunkIsGood = false
 						break
 					}
@@ -90,9 +101,8 @@ func worker(jobs <-chan *part.Chunk) {
 				case *down.Chunk_IntegrityCheck:
 					checksum := fmt.Sprintf("%x", hasher.Sum(nil))
 					if checksum != payload.IntegrityCheck.Checksum {
-						log.Printf("checksum mismatch: chunk is corrupted")
-						log.Printf("trying next storage node")
-						pool.ReleaseConn(connId)
+						msg := fmt.Sprintf("checksum mismatch: chunk is corrupted")
+						handleJobError(msg, connId)
 						chunkIsGood = false
 						break
 					}
@@ -141,6 +151,11 @@ func Download(fileName string) error {
 
 	jobs := initJobs(filePartition)
 	nbWorkers := min(len(filePartition.Chunks), 500)
+
+	dehasher, err = hs.GetHasher()
+	if err != nil {
+		return err
+	}
 
 	var wg sync.WaitGroup
 	for i := 0; i < nbWorkers; i++ {

@@ -3,6 +3,7 @@ package file_upload
 import (
 	pool "Awesome-DFS/client/connection_pool_manager"
 	fp "Awesome-DFS/client/file_partition"
+	hs "Awesome-DFS/client/hashing_service"
 	part "Awesome-DFS/protobuf/partition"
 	up "Awesome-DFS/protobuf/transfer"
 	"context"
@@ -15,6 +16,7 @@ var (
 	payloadSize int64 = 2 * 1024 * 1024
 	file        *os.File
 	fileUuid    string
+	hasher      *hs.HashingService
 )
 
 func readData(offset int64, data []byte) {
@@ -56,8 +58,12 @@ func worker(jobs <-chan *part.Chunk) {
 			}
 
 			readData(i, data)
+			hashedData, err := hasher.EncryptByteArray(data)
+			if err != nil {
+				log.Fatalf("error hashing data: %v", err)
+			}
 
-			payloadData := &up.Data{RawBytes: data, Number: i / payloadSize}
+			payloadData := &up.Data{RawBytes: hashedData, Number: i / payloadSize}
 			chunkData := &up.Chunk_Data{Data: payloadData}
 			chunk.Payload = chunkData
 
@@ -105,6 +111,11 @@ func UploadFile(fileToUp *os.File, chunkSize int64, nbReplicas int) error {
 
 	jobs := initJobs(filePartition)
 	nbWorkers := min(len(filePartition.Chunks), 500)
+
+	hasher, err = hs.GetHasher()
+	if err != nil {
+		return err
+	}
 
 	var wg sync.WaitGroup
 	for i := 0; i < nbWorkers; i++ {
